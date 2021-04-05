@@ -2,7 +2,8 @@ import React from "react";
 import * as BooksAPI from "./BooksAPI";
 import "./App.css";
 import { Route } from "react-router-dom";
-import BooksList from "./BooksList";
+import BooksList from "./BooksList.js";
+import AddBook from "./AddBook.js";
 
 class BooksApp extends React.Component {
   state = {
@@ -13,29 +14,90 @@ class BooksApp extends React.Component {
      * pages, as well as provide a good URL they can bookmark and share.
      */
     books: [],
+    error: '',
   };
 
   componentDidMount() {
     BooksAPI.getAll().then((books) => {
-      console.log(books);
       this.setState({
-        books: books
+        books: books,
       });
     });
   }
 
+  getAllFromSearch = (e, query) => {
+    debugger;
+    e.preventDefault();
+    if (query === "") {
+      this.setState({
+        books: []
+      });
+    } else {
+      BooksAPI.search(query).then((books) => {
+        debugger;
+        if (books === undefined || books.error) {
+          this.setState({
+            books: []
+          });
+        } 
+        else {
+          const shelfBooks = this.state.books;
+          const SearchList = books.map(function(book) {
+            if (shelfBooks.some((b) => b.id === book.id)) {
+              const filteredBook = shelfBooks.filter(
+                (oldBook) => oldBook.id === book.id
+              );
+              book = filteredBook[0];
+              return book;
+            } else {
+              return book;
+            }
+          });
+
+          this.setState({
+            books: SearchList
+          });
+        }
+      });
+    }
+  };
+
+  ClearSearchList = () => {
+    BooksAPI.getAll().then((books) => {
+      this.setState({
+        books: books,
+      });
+    });
+  };
+
+  NewSearchList = () => {
+    this.setState({
+      books: [],
+    });
+  };
+
   handleChangeShelf = (e, book, shelf) => {
     e.preventDefault();
-    BooksAPI.update(book, shelf);
-    this.setState({
-      books: this.state.books.map((b) => {
-        if(b.id === book.id) {
-          b.shelf = shelf;
-        }
-        return b
-      })
-    });
-    
+    if (book.shelf === undefined) {
+      book.shelf = shelf;
+      BooksAPI.update(book, shelf).then((res) => {
+        BooksAPI.getAll().then((books) => {
+          this.setState({
+            books: books,
+          });
+        });
+      });
+    } else {
+      BooksAPI.update(book, shelf);
+      this.setState({
+        books: this.state.books.map((b) => {
+          if (b.id === book.id) {
+            b.shelf = shelf;
+          }
+          return b;
+        }),
+      });
+    }
   };
 
   render() {
@@ -48,22 +110,25 @@ class BooksApp extends React.Component {
             <BooksList
               booksList={this.state.books}
               handleChangeShelf={this.handleChangeShelf}
+              NewSearchList={this.NewSearchList}
             />
           )}
         />
 
-
-        {/* <Route
+        <Route
           path="/search"
           render={({ history }) => (
             <AddBook
-              onCreateContact={(contact) => {
-                this.onCreateContact(contact);
+              booksList={this.state.books}
+              getAllFromSearch={this.getAllFromSearch}
+              handleChangeShelf={(e, book, shelf) => {
+                this.handleChangeShelf(e, book, shelf);
                 history.push("/");
               }}
+              ClearSearchList={this.ClearSearchList}
             />
           )}
-        /> */}
+        />
       </div>
     );
   }

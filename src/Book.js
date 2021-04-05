@@ -1,10 +1,9 @@
 import React from "react";
 
 export default function Book(props) {
-
-    const handleOnChange = (event, book) => {
-        props.handleChangeShelf(event, book, event.target.value);
-    }
+  const handleOnChange = (event, book) => {
+    props.handleChangeShelf(event, book, event.target.value);
+  };
 
   return (
     <div>
@@ -15,12 +14,12 @@ export default function Book(props) {
             style={{
               width: 128,
               height: 193,
-              backgroundImage: `url(${props.book.imageLinks.thumbnail})`,
+              backgroundImage: `url(${props.book.imageLinks? props.book.imageLinks.thumbnail:''})`,
             }}
           />
           <div className="book-shelf-changer">
             <select
-              value={props.book.shelf}
+              defaultValue={props.book.shelf? props.book.shelf: "none"}
               onChange={(e) => handleOnChange(e, props.book)}
             >
               <option value="move" disabled>
@@ -35,9 +34,9 @@ export default function Book(props) {
         </div>
         <div className="book-title">{props.book.title}</div>
         <div className="book-authors">
-          {props.book.authors
+          {props.book.authors? props.book.authors
             .map((author) => author)
-            .reduce((prevAuthor, currAuthor) => [prevAuthor, ", ", currAuthor])}
+            .reduce((prevAuthor, currAuthor) => [prevAuthor, ", ", currAuthor]) : ''}
         </div>
       </div>
     </div>

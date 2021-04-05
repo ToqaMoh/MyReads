@@ -11,7 +11,7 @@ export default function Shelf(props) {
         <div className="bookshelf-books">
           <ol className="books-grid">
             {props.booksList.map((book) => {
-              return <Book key={book.id} book={book} handleChangeShelf={props.handleChangeShelf}/>;
+              return <Book key={book.id} book={book} handleChangeShelf={props.handleChangeShelf}/>
             })}
           </ol>
         </div>
