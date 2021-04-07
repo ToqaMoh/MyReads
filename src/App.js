@@ -14,10 +14,10 @@ class BooksApp extends React.Component {
      * pages, as well as provide a good URL they can bookmark and share.
      */
     books: [],
-    error: '',
+    searchList: []
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     BooksAPI.getAll().then((books) => {
       this.setState({
         books: books,
@@ -26,21 +26,18 @@ class BooksApp extends React.Component {
   }
 
   getAllFromSearch = (e, query) => {
-    debugger;
     e.preventDefault();
     if (query === "") {
       this.setState({
-        books: []
+        searchList: [],
       });
     } else {
       BooksAPI.search(query).then((books) => {
-        debugger;
         if (books === undefined || books.error) {
           this.setState({
-            books: []
+            searchList: [],
           });
-        } 
-        else {
+        } else {
           const shelfBooks = this.state.books;
           const SearchList = books.map(function(book) {
             if (shelfBooks.some((b) => b.id === book.id)) {
@@ -55,7 +52,7 @@ class BooksApp extends React.Component {
           });
 
           this.setState({
-            books: SearchList
+            searchList: SearchList,
           });
         }
       });
@@ -72,7 +69,7 @@ class BooksApp extends React.Component {
 
   NewSearchList = () => {
     this.setState({
-      books: [],
+      searchList: [],
     });
   };
 
@@ -80,22 +77,23 @@ class BooksApp extends React.Component {
     e.preventDefault();
     if (book.shelf === undefined) {
       book.shelf = shelf;
-      BooksAPI.update(book, shelf).then((res) => {
+      BooksAPI.update(book, shelf).then(() => {
         BooksAPI.getAll().then((books) => {
           this.setState({
-            books: books,
+            books: books
           });
         });
       });
     } else {
-      BooksAPI.update(book, shelf);
-      this.setState({
-        books: this.state.books.map((b) => {
-          if (b.id === book.id) {
-            b.shelf = shelf;
-          }
-          return b;
-        }),
+      BooksAPI.update(book, shelf).then(() => {
+        this.setState({
+          books: this.state.books.map((b) => {
+            if (b.id === book.id) {
+              b.shelf = shelf;
+            }
+            return b;
+          }),
+        });
       });
     }
   };
@@ -119,7 +117,7 @@ class BooksApp extends React.Component {
           path="/search"
           render={({ history }) => (
             <AddBook
-              booksList={this.state.books}
+              booksList={this.state.searchList}
               getAllFromSearch={this.getAllFromSearch}
               handleChangeShelf={(e, book, shelf) => {
                 this.handleChangeShelf(e, book, shelf);
